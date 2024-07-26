@@ -23,6 +23,11 @@ namespace NZWalks.API.Controllers
         public async Task<IActionResult> Create([FromBody] AddWalkRequestDto addWalkRequestDto)
         {
             //
+
+            if(!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
             var walkDomainModel = _mapper.Map<Walk>(addWalkRequestDto);
             walkDomainModel = await _repository.CreateAsync(walkDomainModel);
 
@@ -30,9 +35,11 @@ namespace NZWalks.API.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] string? filterOn, [FromQuery] string? filterQuery,
+                                                [FromQuery] string? sortBy, [FromQuery] bool isAscending,
+                                                [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 1000)
         {
-            var walkDomainModels = await _repository.GetAllAsync();
+            var walkDomainModels = await _repository.GetAllAsync(filterOn, filterQuery, sortBy, isAscending, pageNumber, pageSize);
 
             //Map model to dto
             return Ok(_mapper.Map<List<WalkDto>>(walkDomainModels));
@@ -58,6 +65,10 @@ namespace NZWalks.API.Controllers
         [Route("{id:Guid}")]
         public async Task<IActionResult> UpdateAsync([FromRoute] Guid id, [FromBody] UpdateWalkRequestDto updateWalkRequestDto)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
             //Map Dto to domain model
             var walkDomainModel = _mapper.Map<Walk>(updateWalkRequestDto);
 
